@@ -3,8 +3,7 @@
 // Other stuff
 #include <cmath>
 #include <algorithm>
-#include <cvolton.level-id-api/include/EditorIDs.hpp>
-#include <filesystem>
+#include <cvolton.level-id-api/EditorIDs.hpp>
 #include <fmt/chrono.h>
 
 using namespace geode::prelude;
@@ -178,9 +177,9 @@ class $modify(PassratePlayLayer, PlayLayer) {
 
 	}
 
-	bool init(GJGameLevel* level, bool useReplay, bool dontCreateObjects) {
+	bool init(GJGameLevel* level, bool dontCreateObjects) {
 		// ORIGINAL FUNCTION CALL
-		if (!PlayLayer::init(level, useReplay, dontCreateObjects)) return false;
+		if (!PlayLayer::init(level, dontCreateObjects)) return false;
 
 		// Define label that shows info in bottom left
 		auto f = m_fields.self();
@@ -189,6 +188,7 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		f->label->setScale(0.4f);
 		f->label->setPosition({5.f, 5.f});
 		f->label->setID("passrate-label"_spr);
+		f->label->setString("entering level");
 		this->addChild(f->label, 100);
 		
 		// Add event listeners to react to keypresses on this play layer
@@ -204,6 +204,7 @@ class $modify(PassratePlayLayer, PlayLayer) {
 				if (down && !repeat) changeTargetstartPos(false);
 			}
 		);
+		
 		
 		return true;
 	}
@@ -355,8 +356,15 @@ class $modify(PassratePlayLayer, PlayLayer) {
 			}			
 		}
 		
-		
 		f->attemptTime += dt;
+		
+		// Make sure label updates when entering level:
+		if (!f->label) return;
+		
+		if(strcmp(f->label->getString(), "entering level") == 0) 
+		{
+			updateLabel();
+		}
 	}
 
 	// Get start postion (or 100%) that is next after our current percent
@@ -433,7 +441,6 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		if(f->usingCustomTarget && customTarget != -1)
 		{
 			f->target = customTarget;
-			f->attemptActive = false;
 		}
 		else
 		// Do we need new automatic target?
@@ -1085,7 +1092,12 @@ class $modify(PassratePauseLayer, PauseLayer) {
 	void customSetup() {
 		PauseLayer::customSetup();
 
-		auto menu = this->getChildByID("left-button-menu");
+		// Node IDs moved the menu under main-layer, older versions had it directly on the layer. Check both to be sure
+		CCNode* menu = nullptr;
+		if (auto mainLayer = this->getChildByID("main-layer")) {
+			menu = mainLayer->getChildByID("left-button-menu");
+		}
+		if (!menu) menu = this->getChildByID("left-button-menu");
 		if (!menu) return;
 
 		auto label = CCLabelBMFont::create("%", "bigFont.fnt");
@@ -1107,122 +1119,59 @@ class $modify(PassratePauseLayer, PauseLayer) {
 	}
 };
 
-
-
-// -------------------- -------------------- -------------------- -------------------- --------------------
-// Delete non-whitelisted level data settings button! Almost fully from example on https://docs.geode-sdk.org/mods/settings/ but uhh it just works
-// -------------------- -------------------- -------------------- -------------------- -------------------- 
 #include <Geode/loader/SettingV3.hpp>
-#include <Geode/binding/ButtonSprite.hpp>
-#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
-
-// The "setting": has no value, just a name and description
-class PruneButtonSettingV3 : public SettingV3 {
-public:
-	static Result<std::shared_ptr<SettingV3>> parse(
-		std::string const& key, std::string const& modID, matjson::Value const& json
-	) {
-		auto res = std::make_shared<PruneButtonSettingV3>();
-		auto root = checkJson(json, "PruneButtonSettingV3");
-		res->init(key, modID, root);
-		res->parseNameAndDescription(root);
-		res->parseEnableIf(root);
-		root.checkUnknownKeys();
-		return root.ok(std::static_pointer_cast<SettingV3>(res));
-	}
-
-	// Nothing to save or load, button has no value
-	bool load(matjson::Value const&) override { return true; }
-	bool save(matjson::Value&) const override { return true; }
-	bool isDefaultValue() const override { return true; }
-	void reset() override {}
-
-	SettingNodeV3* createNode(float width) override;
-};
-
-// The node that appears in the settings UI
-class PruneButtonNode : public SettingNodeV3 {
-protected:
-	bool init(std::shared_ptr<PruneButtonSettingV3> setting, float width) {
-		if (!SettingNodeV3::init(setting, width)) return false;
-
-		auto spr = ButtonSprite::create("Delete data", "goldFont.fnt", "GJ_button_01.png", .8f);
-		spr->setScale(.5f);
-		auto btn = CCMenuItemSpriteExtra::create(
-			spr, this, menu_selector(PruneButtonNode::onButton)
-		);
-		this->getButtonMenu()->addChildAtPosition(btn, Anchor::Center);
-		this->getButtonMenu()->setContentWidth(60);
-		this->getButtonMenu()->updateLayout();
-
-		this->updateState(nullptr);
-		return true;
-	}
-
-	void onButton(CCObject*) {
-		createQuickPopup(
-			"Delete data",
-			"Delete saved data for every level that is <cr>not</c> whitelisted? "
-			"This cannot be undone.",
-			"Cancel", "Delete",
-			[](auto, bool confirmed) {
-				if (confirmed) deleteNonWhitelisted();
-			}
-		);
-	}
-
-	// These aren't needed for a simple button, so no-op
-	void onCommit() override {}
-	void onResetToDefault() override {}
-
-public:
-	static PruneButtonNode* create(std::shared_ptr<PruneButtonSettingV3> setting, float width) {
-		auto ret = new PruneButtonNode();
-		if (ret->init(setting, width)) { ret->autorelease(); return ret; }
-		delete ret;
-		return nullptr;
-	}
-	bool hasUncommittedChanges() const override { return false; }
-	bool hasNonDefaultValue() const override { return false; }
-};
-
-SettingNodeV3* PruneButtonSettingV3::createNode(float width) {
-	return PruneButtonNode::create(
-		std::static_pointer_cast<PruneButtonSettingV3>(shared_from_this()), width
-	);
-}
-
+#include <Geode/ui/GeodeUI.hpp>
+#include <asp/fs.hpp>
 $on_mod(Loaded) {
-	// register the type name used in mod.json, minus the "custom:" prefix
-	(void)Mod::get()->registerCustomSettingType("prune-button", &PruneButtonSettingV3::parse);
+	// Button in settings (built in setting type) (from https://github.com/geode-sdk/geode/pull/1903)
+	// Delete non whitelisted data button in settings:
+	ButtonSettingPressedEventV3(geode::Mod::get(), "prune-data").listen([] (auto buttonKey) {
+		if (buttonKey == "delete-button") {
+			createQuickPopup(
+				"Delete data",
+				"Delete saved data for every level that is <cr>not</c> whitelisted? "
+				"This cannot be undone.",
+				"Cancel", "Delete",
+				[](auto, bool confirmed) {
+					if (confirmed) deleteNonWhitelisted();
+				}
+			);
+		}
+	}).leak();
 	
-	
-	// Simple backup system
-	namespace fs = std::filesystem;
-	std::error_code ec; // The error_code overloads don't throw, so if anything fails it doesn't cause issues other than a missed backup
-
+	// (Updated for v6) Simple backup system. asp::fs functions don't throw, so if anything fails just skip the backup
 	auto saveDir = Mod::get()->getSaveDir();
 	auto src = saveDir / "saved.json";
-	if (!fs::exists(src, ec)) return;
+	if (!src.exists()) return;
 
 	auto backupDir = saveDir / "backups";
-	fs::create_directories(backupDir, ec);
+	if (asp::fs::createDirAll(backupDir).isErr()) return;
 
 	auto now = std::chrono::floor<std::chrono::seconds>(std::chrono::system_clock::now());
 	auto dest = backupDir / fmt::format("saved-{:%Y-%m-%d_%H-%M-%S}.json", now);
-	fs::copy_file(src, dest, fs::copy_options::overwrite_existing, ec);
 
-	// keep only the newest N: timestamped names sort oldest-first
-	std::vector<fs::path> backups;
-	for (fs::directory_iterator it(backupDir, ec), end; !ec && it != end; it.increment(ec)) 
-	{	// Manual loop allows us to avoid exceptions on indrementing
-		backups.push_back(it->path());
+	// Read and write instead of copying file, don't know how to copy, should be fine
+	auto contents = asp::fs::readToString(src);
+	if (!contents) return;
+	if (!asp::fs::write(dest, contents.unwrap())) return;
+
+	// Keep only the newest N: timestamped names sort oldest-first
+	auto iterator = asp::fs::iterDir(backupDir);
+	if (!iterator) return;
+
+	std::vector<asp::fs::Path> backups;
+	for (auto result : iterator.unwrap()) {
+		if (!result) continue;	// Skip entries that can't be read
+		auto& entry = result.unwrap();
+		if (entry.isFile()) backups.push_back(entry.path);
 	}
-	
-	std::sort(backups.begin(), backups.end());
+
+	std::sort(backups.begin(), backups.end(), [](auto const& a, auto const& b) {
+		return a.string() < b.string();
+	});
+
 	constexpr size_t keep = 10;
-	while (backups.size() > keep) {
-		fs::remove(backups.front(), ec);
-		backups.erase(backups.begin());
+	for (size_t i = 0; i + keep < backups.size(); i++) {
+		(void)asp::fs::remove(backups[i]);	// Failing to delete an old backup isn't worth reacting to
 	}
 }

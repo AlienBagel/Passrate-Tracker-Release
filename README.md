@@ -1,10 +1,9 @@
-# installation
+# Manual installation
 
-Since the mod can't be submitted to Geode for now, here is how you can install it:
 - Go to the releases section, and download the .geode file.
 - In Geometry Dash, go to Geode's settings and click "Install From File". Then select the .geode file you downloaded.
 
-That should be it! This mod has only been tested for Windows, and as this is the first release it might be a bit buggy / rough around the edges.
+That should be it! This mod has only been tested for Windows, and as this is an early release it might be a bit buggy / rough around the edges.
 
 # Passrate Tracker
 
@@ -107,4 +106,3 @@ So how about if your passrate is 50% for all parts instead? 2000 attempts? No. *
 This mod started as a small personal tool I made for myself, that I then decided I wanted to share.
 
 That means that I can only be confident in this working for Windows, as well as the fact that there might be more kinks to work out that I just haven't been able to find.
-Also I cannot upload it to Geode for now since they're actively updating and not taking new mod submissions.

@@ -1,35 +1,32 @@
 {
-	"geode": "5.11.2",
+	"geode": "6.0.0",
 	"gd": {
-		"win": "2.2081",
-		"android": "2.2081",
-		"mac": "2.2081",
-		"ios": "2.2081"
+		"win": "2.2091"
 	},
 	"id": "alienbagel.passrate-tracker",
 	"name": "Passrate Tracker",
-	"version": "v1.0.0",
+	"version": "v1.1.0",
 	"developer": "AlienBagel",
 	"description": "Tracks your passrate for various runs",
 	"tags":["gameplay", "offline", "utility", "interface"],
 	"dependencies": {
-		"geode.node-ids": ">=v1.23.3",
-		"cvolton.level-id-api": ">=2.0.0"
+		"geode.node-ids": ">=v1.24.0-beta.1",
+		"cvolton.level-id-api": ">=2.1.0"
 	},
 	"settings": {
-		"next-target-key": {
-        "type": "keybind",
-        "name": "Next target",
-        "description": "Move the target to the next start position / the ending. (If keybinds stop working try restarting the game)",
-        "default": "D",
-        "category": "gameplay"
-		},
 		"prev-target-key": {
 			"type": "keybind",
 			"name": "Previous target",
 			"description": "Move the target to the previous start position (if possible).",
-			"default": "A",
+			"default": "Y",
 			"category": "gameplay"
+		},
+		"next-target-key": {
+        "type": "keybind",
+        "name": "Next target",
+        "description": "Move the target to the next start position / the ending. (If keybinds stop working try restarting the game)",
+        "default": "T",
+        "category": "gameplay"
 		},
 		"text-opacity": {
 			"type": "int", "default": 160, "min": 0, "max": 255,
@@ -67,8 +64,10 @@
 			"description": "Disable this to turn off the label while playing and disable tracking. Can be done from within a level."
 		},
 		"prune-data": {
-			"type": "custom:prune-button",
-			"name": "Delete non-whitelisted data",
+			"type": "button",
+			"buttons": {
+				"delete-button": "Delete non-whitelisted data"
+			},
 			"description": "Deletes saved passrate data for every level that doesn't have \"whitelisted\" enabled"
 		}
 	}
