@@ -33,6 +33,10 @@ Other, delete later: XXX
 Incomplete build for error catching:
 cmake --build build --config RelWithDebInfo
 
+Top side mouse button: Start recording macro
+Middle mouse button: Stop recording macro
+Bottom mouse side button: Execute notepad++ macro
+
 
 */
 
