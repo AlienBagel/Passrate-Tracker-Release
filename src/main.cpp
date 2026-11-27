@@ -1,3 +1,33 @@
+// MOD SUBMISSION DISCLAIMER
+/*
+
+The previous version of this mod was rejected with the reason "vibecoded".
+
+To avoid this version being rejected for the same reason, I have:
+
+* Chosen to "source" different parts of code (ei say "I learned this / know how to code this from x example / docs")
+* Chosen to do all my small commits on the release repo instead of on my private copy, so me iterating the code is visible
+* Chosen to add notes about design choices as the defend the fact that I made them
+
+
+Additionally, here are a few notes about my code that I thought was important, since I thought they might have been red flags as to it being AI, though I wouldn't know.
+
+	For when I comment	// I like to put them on the same line (mostly) as I find it more readable and concise (LLM's also do this a lot to my knowledge)
+	
+	-------------------- -------------------- I like to add lines of dashes like this to split up the code. I learned this from Code Bullet I believe :) -------------------- --------------------
+	
+	I keep the entire mod in 1 file since I hate working with header files in c++, and it's a small mod
+	
+	If anything seems like it wouldn't have been written in an IDE like that: that's because it wasn't! I write code in Notepad++ because I'm used to it, it has Scintilla (which is a godsend), and I hate the friction that comes with setting up projects in common IDE's (even if they come with smart features like autocomplete)
+	
+
+If anything I hope the history of commits that will now be visible should speak to the mod being human made.
+
+
+*/
+
+
+// Hmm
 #include <Geode/Geode.hpp>
 
 // Other stuff
