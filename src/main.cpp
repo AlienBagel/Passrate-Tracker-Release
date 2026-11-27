@@ -592,6 +592,7 @@ void deleteNonWhitelisted() {
 #include <Geode/ui/Notification.hpp>
 #include <Geode/utils/string.hpp>
 #include <Geode/modify/PauseLayer.hpp>
+#include <Geode/ui/ScrollLayer.hpp>
 
 class PassrateHubPopup;
 
@@ -605,6 +606,7 @@ float parsePercent(std::string text)
 	return std::clamp(parsed.unwrap(), 0.f, 100.f);
 }
 
+// Like parsePercent but without the implicit clamping
 float parseNumberUnclamped(std::string text)
 {
 	std::replace(text.begin(), text.end(), ',', '.');
@@ -988,145 +990,151 @@ public:
 // -------------------- -------------------- -------------------- -------------------- --------------------
 // Hub popup: a list of buttons that open the sub-popups
 // -------------------- -------------------- -------------------- -------------------- --------------------
-class PassrateHubPopup : public geode::Popup {
-protected:
-	PassratePlayLayer* m_pl = nullptr;
+// NOTE: For the initial hub I did quite like how it turned out, but I wanted the ability to add more to it, since I kept coming up with more stuff and expanding it (from just custom target to settings & info to "reset segment" to the enable and whitelist toggle. Specifically I wanted to make it scrollable using HJfod's example https://gist.github.com/HJfod/ac5dfbd5d32a799432b366fce838f45f
+// class PassrateHubPopup : public geode::Popup {
+ // protected:
+	// PassratePlayLayer* m_pl = nullptr;
 
-	bool whitelistedEnabled;
-	bool trackerEnabled;
+	// bool whitelistedEnabled;
+	// bool trackerEnabled;
 	
 
-	bool init(PassratePlayLayer* pl) 
-	{
-		if (!Popup::init(240.f, 240.f)) return false;
-		this->setTitle("Passrate Tracker");
-		m_pl = pl;
-		auto f = m_pl->m_fields.self();
+	// bool init(PassratePlayLayer* pl) 
+	// {
+		// if (!Popup::init(240.f, 240.f)) return false;
+		// this->setTitle("Passrate Tracker");
+		// m_pl = pl;
+		// auto f = m_pl->m_fields.self();
 		
-		constexpr float offset = 50.f;
+		// // NOTE: got tired of manually adjusting every number when I added a new element. I didn't bother trying to find a more efficient way to do it so this was my patchjob.
+		// constexpr float offset = 50.f;
 		
-		whitelistedEnabled =  m_pl->isWhitelisted(pl->saveKey());
-		trackerEnabled = geode::Mod::get()->getSettingValue<bool>("enable-tracker");
+		// whitelistedEnabled =  m_pl->isWhitelisted(pl->saveKey());
+		// trackerEnabled = geode::Mod::get()->getSettingValue<bool>("enable-tracker");
 		
-		// Got tired of naming variables, future me don't judge okay, btnSpr3 is very readable
-		auto btnSpr = ButtonSprite::create("Custom Target");
-		btnSpr->setScale(0.7f);
-		auto targetButton = CCMenuItemSpriteExtra::create(
-		   btnSpr, this,
-			menu_selector(PassrateHubPopup::onCustomTarget)
-		);
-		m_buttonMenu->addChildAtPosition(targetButton, Anchor::Center, {0.f, 20.f+offset});
+		// // Got tired of naming variables, future me don't judge okay, btnSpr3 is very readable
+		// auto btnSpr = ButtonSprite::create("Custom Target");
+		// btnSpr->setScale(0.7f);
+		// auto targetButton = CCMenuItemSpriteExtra::create(
+		   // btnSpr, this,
+			// menu_selector(PassrateHubPopup::onCustomTarget)
+		// );
+		// m_buttonMenu->addChildAtPosition(targetButton, Anchor::Center, {0.f, 20.f+offset});
 		
-		auto btnSpr1 = ButtonSprite::create("Settings");
-		btnSpr1->setScale(0.7f);
-		auto settingsButton = CCMenuItemSpriteExtra::create(
-			btnSpr1, this,
-			menu_selector(PassrateHubPopup::onSettings)
-		);
-		m_buttonMenu->addChildAtPosition(settingsButton, Anchor::Center, {0.f, -10.f+offset});
+		// auto btnSpr1 = ButtonSprite::create("Settings");
+		// btnSpr1->setScale(0.7f);
+		// auto settingsButton = CCMenuItemSpriteExtra::create(
+			// btnSpr1, this,
+			// menu_selector(PassrateHubPopup::onSettings)
+		// );
+		// m_buttonMenu->addChildAtPosition(settingsButton, Anchor::Center, {0.f, -10.f+offset});
 
-		auto btnSpr2 = ButtonSprite::create("Info");
-		btnSpr2->setScale(0.7f);
-		auto infoButton = CCMenuItemSpriteExtra::create(
-			btnSpr2, this,
-			menu_selector(PassrateHubPopup::onInfo)
-		);
-		m_buttonMenu->addChildAtPosition(infoButton, Anchor::Center, {0.f, -40.f+offset});
+		// auto btnSpr2 = ButtonSprite::create("Info");
+		// btnSpr2->setScale(0.7f);
+		// auto infoButton = CCMenuItemSpriteExtra::create(
+			// btnSpr2, this,
+			// menu_selector(PassrateHubPopup::onInfo)
+		// );
+		// m_buttonMenu->addChildAtPosition(infoButton, Anchor::Center, {0.f, -40.f+offset});
 		
-		auto btnSpr3 = ButtonSprite::create("Reset Segment");
-		btnSpr3->setScale(0.7f);
-		auto resetMemoryButton = CCMenuItemSpriteExtra::create(
-			btnSpr3, this,
-			menu_selector(PassrateHubPopup::onResetSegment)
-		);
-		m_buttonMenu->addChildAtPosition(resetMemoryButton, Anchor::Center, {0.f, -70.f+offset});
+		// auto btnSpr3 = ButtonSprite::create("Reset Segment");
+		// btnSpr3->setScale(0.7f);
+		// auto resetMemoryButton = CCMenuItemSpriteExtra::create(
+			// btnSpr3, this,
+			// menu_selector(PassrateHubPopup::onResetSegment)
+		// );
+		// m_buttonMenu->addChildAtPosition(resetMemoryButton, Anchor::Center, {0.f, -70.f+offset});
 		
-		// Enable passrate tracker toggle
-		auto m_toggleEnabled = CCMenuItemToggler::createWithStandardSprites(
-			this, menu_selector(PassrateHubPopup::onToggleEnabled), 0.7f
-		);
-		m_toggleEnabled->toggle(geode::Mod::get()->getSettingValue<bool>("enable-tracker"));
-		m_buttonMenu->addChildAtPosition(m_toggleEnabled, Anchor::Center, {-85.f, -100.f+offset});
+		// // Enable passrate tracker toggle
+		// auto m_toggleEnabled = CCMenuItemToggler::createWithStandardSprites(
+			// this, menu_selector(PassrateHubPopup::onToggleEnabled), 0.7f
+		// );
+		// m_toggleEnabled->toggle(geode::Mod::get()->getSettingValue<bool>("enable-tracker"));
+		// m_buttonMenu->addChildAtPosition(m_toggleEnabled, Anchor::Center, {-85.f, -100.f+offset});
 
-		auto toggleLabelEnabled = CCLabelBMFont::create("Enable passrate tracker", "bigFont.fnt");
-		toggleLabelEnabled->setScale(0.4f);
-		toggleLabelEnabled->setAnchorPoint({0.f, 0.5f});
-		m_mainLayer->addChildAtPosition(toggleLabelEnabled, Anchor::Center, {-67.f, -100.f+offset});
+		// auto toggleLabelEnabled = CCLabelBMFont::create("Enable passrate tracker", "bigFont.fnt");
+		// toggleLabelEnabled->setScale(0.4f);
+		// toggleLabelEnabled->setAnchorPoint({0.f, 0.5f});
+		// m_mainLayer->addChildAtPosition(toggleLabelEnabled, Anchor::Center, {-67.f, -100.f+offset});
 		
 		
-		// Whitelist level toggle
-		auto m_toggleWhitelist = CCMenuItemToggler::createWithStandardSprites(
-			this, menu_selector(PassrateHubPopup::onToggleWhitelist), 0.7f
-		);
-		m_toggleWhitelist->toggle(whitelistedEnabled);
-		m_buttonMenu->addChildAtPosition(m_toggleWhitelist, Anchor::Center, {-85.f, -130.f+offset});
+		// // Whitelist level toggle
+		// auto m_toggleWhitelist = CCMenuItemToggler::createWithStandardSprites(
+			// this, menu_selector(PassrateHubPopup::onToggleWhitelist), 0.7f
+		// );
+		// m_toggleWhitelist->toggle(whitelistedEnabled);
+		// m_buttonMenu->addChildAtPosition(m_toggleWhitelist, Anchor::Center, {-85.f, -130.f+offset});
 
-		auto toggleLabelWhitelist = CCLabelBMFont::create("Whitelist level", "bigFont.fnt");
-		toggleLabelWhitelist->setScale(0.4f);
-		toggleLabelWhitelist->setAnchorPoint({0.f, 0.5f});
-		m_mainLayer->addChildAtPosition(toggleLabelWhitelist, Anchor::Center, {-67.f, -130.f+offset});
+		// auto toggleLabelWhitelist = CCLabelBMFont::create("Whitelist level", "bigFont.fnt");
+		// toggleLabelWhitelist->setScale(0.4f);
+		// toggleLabelWhitelist->setAnchorPoint({0.f, 0.5f});
+		// m_mainLayer->addChildAtPosition(toggleLabelWhitelist, Anchor::Center, {-67.f, -130.f+offset});
 
-		return true;
-	}
+		// return true;
+	// }
 
-	void openChild(geode::Popup* child) 
-	{
-		m_buttonMenu->setEnabled(false); // Freeze the hub while the child is open
-		child->show();
-	}
+	// void openChild(geode::Popup* child) 
+	// {
+		// m_buttonMenu->setEnabled(false); // Freeze the hub while the child is open
+		// child->show();
+	// }
 
-	void onCustomTarget(CCObject*) 
-	{
-		openChild(CustomTargetPopup::create(this, m_pl));
-	}
+	// void onCustomTarget(CCObject*) 
+	// {
+		// openChild(CustomTargetPopup::create(this, m_pl));
+	// }
 
-	void onSettings(CCObject*) 
-	{
-		openChild(SettingsPopup::create(this, m_pl));
-	}
+	// void onSettings(CCObject*) 
+	// {
+		// openChild(SettingsPopup::create(this, m_pl));
+	// }
 
-	void onInfo(CCObject*) 
-	{
-		openChild(InfoPopup::create(this, m_pl));
-	}
+	// void onInfo(CCObject*) 
+	// {
+		// openChild(InfoPopup::create(this, m_pl));
+	// }
 	
-	void onResetSegment(CCObject*)
-	{
-		auto f = m_pl->m_fields.self();
+	// void onResetSegment(CCObject*)
+	// {
+		// auto f = m_pl->m_fields.self();
 		
-		f->currentSegment->resetMemory();
-	}
+		// f->currentSegment->resetMemory();
+	// }
 	
-	void onToggleWhitelist(CCObject*)
-	{
-		whitelistedEnabled = !whitelistedEnabled;
-		m_pl->setWhitelisted(m_pl->saveKey(), whitelistedEnabled);
-	}
+	// void onToggleWhitelist(CCObject*)
+	// {
+		// whitelistedEnabled = !whitelistedEnabled;
+		// m_pl->setWhitelisted(m_pl->saveKey(), whitelistedEnabled);
+	// }
 	
-	void onToggleEnabled(CCObject*)
-	{
-		trackerEnabled = !trackerEnabled;
-		auto f = m_pl->m_fields.self();
-		geode::Mod::get()->setSettingValue<bool>("enable-tracker", trackerEnabled);
-		m_pl->updateLabel();
-	}
+	// void onToggleEnabled(CCObject*)
+	// {
+		// trackerEnabled = !trackerEnabled;
+		// auto f = m_pl->m_fields.self();
+		// geode::Mod::get()->setSettingValue<bool>("enable-tracker", trackerEnabled);
+		// m_pl->updateLabel();
+	// }
 
-public:
-	// Called by a sub-popup when it closes
-	void onChildClosed() {
-		m_buttonMenu->setEnabled(true);
-	}
+ // public:
+	// // Called by a sub-popup when it closes
+	// void onChildClosed() {
+		// m_buttonMenu->setEnabled(true);
+	// }
 
-	static PassrateHubPopup* create(PassratePlayLayer* pl) {
-		auto ret = new PassrateHubPopup();
-		if (ret->init(pl)) {
-			ret->autorelease();
-			return ret;
-		}
-		delete ret;
-		return nullptr;
-	}
-};
+	// static PassrateHubPopup* create(PassratePlayLayer* pl) {
+		// auto ret = new PassrateHubPopup();
+		// if (ret->init(pl)) {
+			// ret->autorelease();
+			// return ret;
+		// }
+		// delete ret;
+		// return nullptr;
+	// }
+// };
+
+// -------------------- SCROLLABLE NEW HUB POPUP -------------------- SCROLLABLE NEW HUB POPUP -------------------- SCROLLABLE NEW HUB POPUP -------------------- SCROLLABLE NEW HUB POPUP 
+
+
 
 // Defined here because it needs the full PassrateHubPopup type
 void PassrateSubPopup::onClose(CCObject* sender) {
@@ -1142,6 +1150,7 @@ class $modify(PassratePauseLayer, PauseLayer) {
 	void customSetup() {
 		PauseLayer::customSetup();
 
+		// NOTE: For the left node I of course just looked at the mods I currently had that had this kind of button, in this case Death Tracker I believe, (until the new update changed it so I had to find mainlayer first)
 		// Node IDs moved the menu under main-layer, older versions had it directly on the layer. Check both to be sure
 		CCNode* menu = nullptr;
 		if (auto mainLayer = this->getChildByID("main-layer")) {
@@ -1150,6 +1159,7 @@ class $modify(PassratePauseLayer, PauseLayer) {
 		if (!menu) menu = this->getChildByID("left-button-menu");
 		if (!menu) return;
 
+		// NOTE: similarly, the general skeleton for how to add a button and it's callback I got from looking at an example from Death Tracker. Knowing about CCMenuItemSpriteExtra::create and it's arguments I could create the other buttons. During this update I also checked the Geode tutorials page, which I hadn't initially gone to as I usually couldn't find what I was looking for. From this I realized that this is a quite inefficient method for me (especially in the popup hub) and should have been written with CCMenuItemExt instead. You live and you learn.
 		auto label = CCLabelBMFont::create("%", "bigFont.fnt");
 		auto sprite = CircleButtonSprite::create(label);
 		sprite->setScale(0.75f);
@@ -1162,6 +1172,7 @@ class $modify(PassratePauseLayer, PauseLayer) {
 		menu->updateLayout();
 	}
 
+	// NOTE: This is just an old name from when the menu was just for adding a custom target. More like a fun fact! Didn't see a reason to change it, as I knew what it was, and I felt it was apparent this just opened the hub anyway
 	void onCustomTarget(CCObject*) {
 		auto pl = static_cast<PassratePlayLayer*>(PlayLayer::get());
 		if (!pl) return;
