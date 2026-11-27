@@ -226,14 +226,14 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		// ORIGINAL FUNCTION CALL
 		if (!PlayLayer::init(level, dontCreateObjects)) return false;
 
+		// NOTE: Just a simple label, got more added to it over time
 		// Define label that shows info in bottom left
 		auto f = m_fields.self();
-		f->label = CCLabelBMFont::create("", "bigFont.fnt");
+		f->label = CCLabelBMFont::create("entering level", "bigFont.fnt");
 		f->label->setAnchorPoint({0.f, 0.f});
 		f->label->setScale(0.4f);
 		f->label->setPosition({5.f, 5.f});
 		f->label->setID("passrate-label"_spr);
-		f->label->setString("entering level");
 		this->addChild(f->label, 100);
 		
 		// Add event listeners to react to keypresses on this play layer
