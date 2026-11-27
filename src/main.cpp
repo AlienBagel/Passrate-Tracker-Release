@@ -116,21 +116,20 @@ struct SegmentTracker {
 		else if (diff < -0.05) return "decreasing";
 		else return "steady";
 	}
-	
 };
 
 template<>
 struct matjson::Serialize<SegmentTracker> {
 	static Result<SegmentTracker> fromJson(matjson::Value const& value) {
-		GEODE_UNWRAP_INTO(double from, value["from"].asDouble());
-		GEODE_UNWRAP_INTO(double to, value["to"].asDouble());
-		GEODE_UNWRAP_INTO(double slowPasses, value["slowPasses"].asDouble());
-		GEODE_UNWRAP_INTO(double slowFails, value["slowFails"].asDouble());
-		GEODE_UNWRAP_INTO(double fastPasses, value["fastPasses"].asDouble());
-		GEODE_UNWRAP_INTO(double fastFails, value["fastFails"].asDouble());
+		GEODE_UNWRAP_INTO(float from, value["from"].asFloat());
+		GEODE_UNWRAP_INTO(float to, value["to"].asFloat());
+		GEODE_UNWRAP_INTO(float slowPasses, value["slowPasses"].asFloat());
+		GEODE_UNWRAP_INTO(float slowFails, value["slowFails"].asFloat());
+		GEODE_UNWRAP_INTO(float fastPasses, value["fastPasses"].asFloat());
+		GEODE_UNWRAP_INTO(float fastFails, value["fastFails"].asFloat());
 		return Ok(SegmentTracker{
-			.slow = { .a = static_cast<float>(slowPasses), .b = static_cast<float>(slowFails) }, .fast = {.a = static_cast<float>(fastPasses), .b = static_cast<float>(fastFails) }, 
-			.from = static_cast<float>(from), .to = static_cast<float>(to) 
+			.slow = { .a = (slowPasses), .b = (slowFails) }, .fast = {.a = (fastPasses), .b = (fastFails) }, 
+			.from = (from), .to = (to) 
 		});
 	}
 
