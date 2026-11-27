@@ -27,6 +27,13 @@ I also commented a lot more and cleaned up, but that was more for my sake
 
 If anything I hope the history of commits that will now be visible should speak to the mod being human made.
 
+
+Other, delete later: XXX
+
+Incomplete build for error catching:
+cmake --build build --config RelWithDebInfo
+
+
 */
 
 
@@ -39,9 +46,8 @@ If anything I hope the history of commits that will now be visible should speak 
 #include <cvolton.level-id-api/EditorIDs.hpp>
 #include <fmt/chrono.h>
 
-// Listen I just forget this is here half the time, cut some slack
+// It sure is there
 using namespace geode::prelude;
-
 
 // I have never used structs before, but a first time for everything. They default to public, which is what I'm used to from JS
 // A set of decayed passes and fails, doesn't hold own lambda
