@@ -236,6 +236,7 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		f->label->setID("passrate-label"_spr);
 		this->addChild(f->label, 100);
 		
+		// NOTE: again just from docs https://docs.geode-sdk.org/mods/settings
 		// Add event listeners to react to keypresses on this play layer
 		this->addEventListener(
 			KeybindSettingPressedEventV3(Mod::get(), "next-target-key"),
@@ -261,7 +262,7 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		auto f = m_fields.self();
 
 		// If neccesary, set new start percent and reset
-		float start = getCurrentPercent();
+		float start = getCurrentPercentMine();
 		if (std::abs(start - f->startPercent) > 0.01f) {
 			f->startPercent = start;
 			if(!f->usingCustomTarget) f->target = -1; // So updateTarget always changes it to next start pos when we change start percent
@@ -391,11 +392,11 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		
 		auto f = m_fields.self();
 		if (f->attemptActive) {
-			if(getCurrentPercent() >= f->target)
+			if(getCurrentPercentMine() >= f->target)
 			{
 				f->reachedTarget = true;
 			}
-			else if(std::abs(f->target - 100.f) < 0.01f && getCurrentPercent() >= f->customEndingPercent) // Check against custom ending percent
+			else if(std::abs(f->target - 100.f) < 0.01f && getCurrentPercentMine() >= f->customEndingPercent) // Check against custom ending percent
 			{
 				f->reachedTarget = true;
 			}			
@@ -524,9 +525,11 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		f->label->setOpacity(Mod::get()->getSettingValue<int>("text-opacity"));
 	}
 
+	// NOTE: I believe I tried searched for a percent function, but didn't trust the source for whatever I found so I made this. I neglegted to see that the other one DID exist and with the same name, meaning I was accidentally hooking it by using the same name, which I had probably remembered reading somewhere. Thus the new name getCurrentPercentMine was born
 	// In own function so I know exactly how it's being calculated
-	float getCurrentPercent()
+	float getCurrentPercentMine()
 	{
+		if(m_levelLength == 0) 
 		return m_player1->getPositionX() / m_levelLength * 100.f;
 	}
 	
