@@ -533,7 +533,7 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		return m_player1->getPositionX() / m_levelLength * 100.f;
 	}
 	
-
+	// NOTE: I thought about if saving in the normal save data json was bad here, but thought it would be fine and that organizing it in my own way (like I saw death tracker did in the save files) would be overkill for this relatively small mod just storing a couple floats. Also thank god to cvolton for editor IDs, that was an annoying afternoon I spent confused having forgotten that they obviously don't have traditional ID's. 
 	// Saving and loading functions
 	std::string saveKey() {
 		if (m_level->m_levelType == GJLevelType::Editor) {
@@ -548,7 +548,7 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		Mod::get()->setSavedValue(saveKey(), m_fields->segments);
 	}
 	
-	
+	// NOTE: This mod saves very little data, but I still didn't like the idea of the save file slowly getting bigger with no way to trim useless data, so I added this feature. 
 	// For data deletion and whitelisting
 	bool isWhitelisted(std::string const& key) {
 		auto list = Mod::get()->getSavedValue<std::vector<std::string>>("whitelist");
