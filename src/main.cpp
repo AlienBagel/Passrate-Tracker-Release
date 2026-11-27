@@ -584,8 +584,9 @@ void deleteNonWhitelisted() {
 	for (auto const& key : toDelete) container.erase(key);
 }
 
-// NEW POPUP SYSTEM -------------------- NEW POPUP SYSTEM -------------------- NEW POPUP SYSTEM -------------------- NEW POPUP SYSTEM -------------------- NEW POPUP SYSTEM -------------------- 
 
+// NEW POPUP SYSTEM -------------------- NEW POPUP SYSTEM -------------------- NEW POPUP SYSTEM -------------------- NEW POPUP SYSTEM -------------------- NEW POPUP SYSTEM -------------------- 
+// NOTE: I wasn't too happy with the pause menu system from before, so I decided to remake most of it to be more scaleable. Stretching the setting / hub screen every time I wanted to add a new setting got old quick
 #include <Geode/ui/Popup.hpp>
 #include <Geode/ui/TextInput.hpp>
 #include <Geode/ui/Notification.hpp>
@@ -594,12 +595,13 @@ void deleteNonWhitelisted() {
 
 class PassrateHubPopup;
 
+// NOTE: This was originally an optional, which I don't really know much about. I hadn't considered that percents wouldn't realistically have a negative value, but now I use that for errors instead.
 // Parses a percent string (decimal can be comma or period). Returns nullopt if invalid.
-std::optional<float> parsePercent(std::string text) 
+float parsePercent(std::string text) 
 {
 	std::replace(text.begin(), text.end(), ',', '.');
 	auto parsed = utils::numFromString<float>(text);
-	if (!parsed.isOk()) return std::nullopt;
+	if (!parsed.isOk()) return -1.f;
 	return std::clamp(parsed.unwrap(), 0.f, 100.f);
 }
 
@@ -696,7 +698,7 @@ protected:
 
 		if (on) {
 			auto parsed = parsePercent(m_input->getString());
-			if (!parsed) {
+			if (parsed < 0.f) {
 				Notification::create("Invalid percentage", NotificationIcon::Error)->show();
 				return;
 			}
