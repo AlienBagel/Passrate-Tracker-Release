@@ -22,7 +22,7 @@ Additionally, here are a few notes about my code that I thought was important, s
 	
 	If anything seems like it wouldn't have been written in an IDE like that: that's because it wasn't! I write code in Notepad++ because I'm used to it, it has Scintilla (which is a godsend), and I hate the friction that comes with setting up projects in common IDE's (even if they come with smart features like autocomplete)
 	
-I also commented a lot more, but that was more for my sake
+I also commented a lot more and cleaned up, but that was more for my sake
 	
 
 If anything I hope the history of commits that will now be visible should speak to the mod being human made.
@@ -118,6 +118,7 @@ struct SegmentTracker {
 	}
 };
 
+// Idk why it is like it is, basically just from the docs (https://docs.geode-sdk.org/mods/savedata)
 template<>
 struct matjson::Serialize<SegmentTracker> {
 	static Result<SegmentTracker> fromJson(matjson::Value const& value) {
@@ -127,12 +128,14 @@ struct matjson::Serialize<SegmentTracker> {
 		GEODE_UNWRAP_INTO(float slowFails, value["slowFails"].asFloat());
 		GEODE_UNWRAP_INTO(float fastPasses, value["fastPasses"].asFloat());
 		GEODE_UNWRAP_INTO(float fastFails, value["fastFails"].asFloat());
-		return Ok(SegmentTracker{
-			.slow = { .a = (slowPasses), .b = (slowFails) }, .fast = {.a = (fastPasses), .b = (fastFails) }, 
-			.from = (from), .to = (to) 
+		return Ok(SegmentTracker{	// I like this initialization syntax, it's very clear and readable and all that
+			.slow = { .a = slowPasses, .b = slowFails }, 
+			.fast = {.a = fastPasses, .b = fastFails }, 
+			.from = from, .to = to 
 		});
 	}
-
+	
+	// Yea see this one idk, json is weird, trust in Geode
 	static matjson::Value toJson(SegmentTracker const& s) {
 		auto obj = matjson::Value();
 		obj["from"] = s.from;
