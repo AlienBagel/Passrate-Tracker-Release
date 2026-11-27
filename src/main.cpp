@@ -529,7 +529,7 @@ class $modify(PassratePlayLayer, PlayLayer) {
 	// In own function so I know exactly how it's being calculated
 	float getCurrentPercentMine()
 	{
-		if(m_levelLength == 0) 
+		if(m_levelLength == 0)  return 0.f;
 		return m_player1->getPositionX() / m_levelLength * 100.f;
 	}
 	
@@ -704,7 +704,7 @@ protected:
 				Notification::create("Invalid percentage", NotificationIcon::Error)->show();
 				return;
 			}
-			value = *parsed;
+			value = parsed;
 		}
 		
 		m_pl->applyCustomTarget(on, value);
@@ -716,7 +716,7 @@ protected:
 			return;
 		}
 		auto value = parsePercent(m_input->getString());
-		m_preview->setString(value ? previewFor(*value).c_str() : "");
+		m_preview->setString(value ? previewFor(value).c_str() : "");
 	}
 
 	void onToggle(CCObject*) {
@@ -1133,6 +1133,190 @@ public:
 // };
 
 // -------------------- SCROLLABLE NEW HUB POPUP -------------------- SCROLLABLE NEW HUB POPUP -------------------- SCROLLABLE NEW HUB POPUP -------------------- SCROLLABLE NEW HUB POPUP 
+
+// `items` here is some content you want to use to generate the 
+// list nodes - this can be levels, posts, or whatever else you want 
+// to make a list of
+// ScrollLayer* createMyList(std::vector<Item> const& myItems) {
+    // // The size here is the size of the visible area you can see and scroll in
+    // auto scrollLayer = ScrollLayer::create({ 300, 200 });
+  
+  	// // Automatically handle positioning all of the nodes in the list
+  	// scrollLayer->m_contentLayer->setLayout(
+    	// ColumnLayout::create()
+      		// // Gap between items; for GD-style lists, you probably want no gap, 
+      		// // for modern Geode style lists you might want something like 5
+      		// ->setGap(0)
+      		// // Make the list flow from top to bottom
+      		// ->setAxisReverse(true)
+      		// // If the list has fewer items than needed to fill the entire 
+      		// // visible area, align items to the top
+      		// ->setAxisAlignment(AxisAlignment::End)
+      		// // This makes the list automatically fit its height to match the 
+      		// // contents, so the items don't get squashed! Make sure to provide 
+      		// // the height of the visible area as the minimum height though
+      		// ->setAutoGrowAxis(scrollLayer->getContentHeight())
+    // );
+    
+    // // We want for this list in particular to alternate the BG color every other 
+    // // item like GD does - however, if you don't want that, you don't need this
+    // bool alternateColorBG = false;
+
+    // // Create the contents of our list
+    // for (auto const& myItem : myItems) {
+        // // You usually want to create a container node for the item BG and menu
+        // auto node = CCNode::create();
+
+        // // Use `scrollLayer->getContentWidth()` so if the size your scroll layer 
+        // // changes in the future, you need to change it only in its declaration!
+        // node->setContentSize({ scrollLayer->getContentWidth(), 50 });
+
+        // // If you want to create a solid rectangular BG, use CCLayerColor
+        // // If you want to create a rounded rectangle like the new Geode UI, 
+        // // use CCScale9Sprite with square02b_001.png as the sprite
+        // auto bg = CCLayerColor::create(
+            // // Alternating darker and lighter color BGs
+            // ccc4(0, 0, 0, alternateColorBG ? 90 : 50),
+            // // As before, don't repeat hardcoded sizes!
+            // node->getContentWidth(), node->getContentHeight()
+        // );
+        // // Needed for CCLayers
+        // bg->ignoreAnchorPointForPosition(false);
+        // // Always prefer addChildAtPosition over addChild if possible
+        // node->addChildAtPosition(bg, Anchor::Center);
+      
+      	// // If you want to add buttons, titles, any other content, create them
+      	// // here and add them using addChildAtPosition - this frees you from 
+      	// // needing to update hardcoded position values in the future if the 
+      	// // list size changes!
+
+      	// // IMPORTANT: Always add your list nodes as children to the 
+      	// // *content layer* - never the list directly!
+		// // We don't need to handle positioning here as the content layer is 
+      	// // managed by the ColumnLayout
+      	// scrollLayer->m_contentLayer->addChild(node);
+      
+        // // Make the next item have a different color BG
+        // alternateColorBG = !alternateColorBG;
+    // }
+  
+  	// // Update the list layout to position all the list nodes
+  	// scrollLayer->m_contentLayer->updateLayout();
+  
+  	// // We are done!
+  	// return scrollLayer;
+// }
+
+class PassrateHubPopup : public geode::Popup {
+ protected:
+	PassratePlayLayer* m_pl = nullptr;
+
+	bool whitelistedEnabled;
+	bool trackerEnabled;
+	
+	bool alternateColorBG = false;
+	
+	ScrollLayer* scrollLayer = ScrollLayer::create({ 220.f, 220.f });
+
+	// NEEDS COMMENTING XXX
+	bool init(PassratePlayLayer* pl) 
+	{
+		if (!Popup::init(240.f, 240.f)) return false;
+		this->setTitle("Passrate Tracker");
+		m_pl = pl;
+		auto f = m_pl->m_fields.self();
+		
+		
+		// Automatically handle positioning all of the nodes in the list
+		scrollLayer->m_contentLayer->setLayout(
+			ColumnLayout::create()
+				->setGap(0)	// Between elements
+				->setAxisReverse(true)
+				->setAxisAlignment(AxisAlignment::End)
+				->setAutoGrowAxis(scrollLayer->getContentHeight())
+		);
+	
+		// Add contents to our scrollable layer
+		// Got tired of naming variables, future me don't judge okay, btnSpr3 is very readable
+		auto btnSpr = ButtonSprite::create("Custom Target");
+		btnSpr->setScale(0.7f);
+		auto targetButton = CCMenuItemSpriteExtra::create(
+		   btnSpr, this, 
+		   menu_selector(PassrateHubPopup::onCustomTarget)
+		);
+		// m_buttonMenu->addChildAtPosition(targetButton, Anchor::Center, {0.f, 20.f+offset});
+		addToScrollLayer(targetButton);
+		
+		// Got tired of naming variables, future me don't judge okay, btnSpr3 is very readable
+		auto btnSpr1 = ButtonSprite::create("Custom Tdedededarget");
+		btnSpr1->setScale(0.7f);
+		auto targetButton1 = CCMenuItemSpriteExtra::create(
+		   btnSpr1, this,
+		   menu_selector(PassrateHubPopup::onCustomTarget)
+		);
+		// m_buttonMenu->addChildAtPosition(targetButton1, Anchor::Center, {0.f, 20.f+offset});
+		addToScrollLayer(targetButton1);
+		
+		scrollLayer->m_contentLayer->updateLayout();
+		
+		this->addChildAtPosition(scrollLayer, Anchor::Center, -scrollLayer->getContentSize() / 2);
+		
+		
+		return true;
+	}
+	
+	void onCustomTarget(CCObject*) {}
+	
+	
+	void addToScrollLayer(CCNode* child)
+	{
+		if(!child)
+		{
+			log::debug("child not recognized?");
+			return;
+		}
+		auto node = CCNode::create();
+		node->setContentSize({ scrollLayer->getContentWidth(), 50 });	// 50 is height? XXX
+		auto bg = CCLayerColor::create(
+			ccc4(0, 0, 0, alternateColorBG ? 90 : 50),
+			node->getContentWidth(), node->getContentHeight()
+		);
+		bg->ignoreAnchorPointForPosition(false);
+		node->addChildAtPosition(bg, Anchor::Center);
+	  
+		scrollLayer->m_contentLayer->addChildAtPosition(child, Anchor::Center);
+
+
+		scrollLayer->m_contentLayer->addChild(node);	
+		alternateColorBG = !alternateColorBG;
+	}
+
+ public:
+	// Called by a sub-popup when it closes
+	void onChildClosed() {
+		m_buttonMenu->setEnabled(true);
+	}
+
+	static PassrateHubPopup* create(PassratePlayLayer* pl) {
+		auto ret = new PassrateHubPopup();
+		if (ret->init(pl)) {
+			ret->autorelease();
+			return ret;
+		}
+		delete ret;
+		return nullptr;
+	}
+};
+
+
+
+
+
+
+
+
+
+
 
 
 
