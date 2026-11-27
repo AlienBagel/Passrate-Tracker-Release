@@ -16,6 +16,8 @@ Additionally, here are a few notes about my code that I thought was important, s
 	
 	-------------------- -------------------- I like to add lines of dashes like this to split up the code. I learned this from Code Bullet I believe :) -------------------- --------------------
 	
+	I love using the shorthand "a ? b : c" becuase it's cool and I like it.
+	
 	I keep the entire mod in 1 file since I hate working with header files in c++, and it's a small mod
 	
 	If anything seems like it wouldn't have been written in an IDE like that: that's because it wasn't! I write code in Notepad++ because I'm used to it, it has Scintilla (which is a godsend), and I hate the friction that comes with setting up projects in common IDE's (even if they come with smart features like autocomplete)
@@ -30,15 +32,18 @@ If anything I hope the history of commits that will now be visible should speak 
 // Hmm
 #include <Geode/Geode.hpp>
 
-// Other stuff
+// Other stuff I need
 #include <cmath>
 #include <algorithm>
 #include <cvolton.level-id-api/EditorIDs.hpp>
 #include <fmt/chrono.h>
 
+// Listen I just forget this is here half the time, cut some slack
 using namespace geode::prelude;
 
-// Decayed number of passes and fails
+
+// I have never used structs before, but a first time for everything. They default to public, which is what I'm used to from JS
+// A set of decayed passes and fails, doesn't hold own lambda
 struct Rate {
 	float a = 0.0;   // Decayed number of passes
 	float b = 0.0;   // Decayed number of fails
@@ -51,8 +56,7 @@ struct Rate {
 		else      b += 1.0;
 	}
 	float total() const    { return a + b; }
-	// Passrate
-	float estimate() const { return total() > 0.0 ? a / total() : 0.0; }
+	float passrate() const { return total() > 0.0 ? a / total() : 0.0; }
 };
 
 // A slow and a fast counter with change detection.
@@ -101,12 +105,12 @@ struct SegmentTracker {
 	}
 	
 
-	float passrate() const { return slow.estimate(); }		// Passrate to display
+	float passrate() const { return slow.passrate(); }		// Passrate to display
 	
 	// Trend indicator calculation
 	std::string trend() const 
 	{
-		float diff = fast.estimate() - slow.estimate();
+		float diff = fast.passrate() - slow.passrate();
 		if(diff > 0.05) return "increasing";
 		else if (diff < -0.05) return "decreasing";
 		else return "steady";
