@@ -1285,6 +1285,8 @@ class PassrateHubPopup : public geode::Popup {
 		
 		scrollLayer->m_contentLayer->updateLayout();
 		
+		scrollLayer->scrollToTop();
+		
 		m_mainLayer->addChildAtPosition(scrollLayer, Anchor::BottomLeft, scrollLayer->getContentSize() / 2 + CCPoint{10.f, 10.f});
 		
 		
