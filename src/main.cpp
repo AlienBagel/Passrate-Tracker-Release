@@ -5,9 +5,9 @@ The previous version of this mod was rejected with the reason "vibecoded".
 
 To avoid this version being rejected for the same reason, I have:
 
-* Chosen to "source" different parts of code (ei say "I learned this / know how to code this from x example / docs")
+* Chosen to "source" different parts of code (ei say "I learned this / know how to code this from x example / docs"), these comments start with NOTE: 
 * Chosen to do all my small commits on the release repo instead of on my private copy, so me iterating the code is visible
-* Chosen to add notes about design choices as the defend the fact that I made them
+* Chosen to add notes about design choices as the defend the fact that I made them, these comments start with NOTE: as well
 
 
 Additionally, here are a few notes about my code that I thought was important, since I thought they might have been red flags as to it being AI, though I wouldn't know.
@@ -53,7 +53,7 @@ Bottom mouse side button: Execute notepad++ macro
 // It sure is there
 using namespace geode::prelude;
 
-// I have never used structs before, but a first time for everything. They default to public, which is what I'm used to from JS
+// NOTE: I have never used structs before, but a first time for everything. They default to public, which is what I'm used to from JS
 // A set of decayed passes and fails, doesn't hold own lambda
 struct Rate {
 	float a = 0.0;   // Decayed number of passes
@@ -128,7 +128,7 @@ struct SegmentTracker {
 	}
 };
 
-// Idk why it is like it is, basically just from the docs (https://docs.geode-sdk.org/mods/savedata)
+// NOTE: Idk why it is like it is, basically just from the docs (https://docs.geode-sdk.org/mods/savedata)
 template<>
 struct matjson::Serialize<SegmentTracker> {
 	static Result<SegmentTracker> fromJson(matjson::Value const& value) {
@@ -145,7 +145,7 @@ struct matjson::Serialize<SegmentTracker> {
 		});
 	}
 	
-	// Yea see this one idk, json is weird, trust in Geode
+	// NOTE: Yea see this one idk, json is weird, trust in Geode
 	static matjson::Value toJson(SegmentTracker const& s) {
 		auto obj = matjson::Value();
 		obj["from"] = s.from;
@@ -164,7 +164,7 @@ struct matjson::Serialize<SegmentTracker> {
 // PLAYLAYER -------------------- PLAYLAYER -------------------- PLAYLAYER -------------------- PLAYLAYER -------------------- PLAYLAYER -------------------- 
 #include <Geode/modify/PlayLayer.hpp>
 class $modify(PassratePlayLayer, PlayLayer) {
-	// I know of Fields() and ~Fields() but understood them to be optional, and the ~ was foreign to me. I believe my use of varibles is safe
+	// NOTE: I know of Fields() and ~Fields() but understood them to be optional, and the ~ was foreign to me. I believe my use of varibles is safe
 	struct Fields {
 		CCLabelBMFont* label = nullptr;			// Label that shows passrate while playing
 		std::vector<float> startPosX; 			// Collected during load
@@ -190,6 +190,8 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		float customEndingPercent = Mod::get()->getSettingValue<float>("custom-ending-percent");
 	};
 
+	// NOTE: I believe I looked for other mods that fetched startpositions to see how that type of action could be preformed, though I don't remember which.
+	// NOTE: I just needed to learn that addObject and createObjectsFromSetupFinished were the functions I needed (Although I only learned I needed createObjectsFromSetupFinished after Init failed to do what I wanted to), and that 31 was the correct ID. I do not want to give the impression I went out to steal code, just learn from an example about a general type of action like getting specific objects and handling them.
 	// Get start position object positions when objects get loaded in
 	void addObject(GameObject* obj) {
 		if (obj->m_objectID == 31) {
@@ -217,9 +219,6 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		
 		// Make sure old segments (from old start positions) get deleted properly
 		checkSegmentValidity();
-		
-		// Update lambda in SegmentTracker struct
-		updateLambda();
 
 	}
 
