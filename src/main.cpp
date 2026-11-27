@@ -12,7 +12,7 @@ To avoid this version being rejected for the same reason, I have:
 
 Additionally, here are a few notes about my code that I thought was important, since I thought they might have been red flags as to it being AI, though I wouldn't know.
 
-	For when I comment	// I like to put them on the same line (mostly) as I find it more readable and concise (LLM's also do this a lot to my knowledge)
+	For when I comment single lines	// I like to put the comments on the same line (mostly) as I find it more readable and concise (LLM's also do this a lot to my knowledge)
 	
 	-------------------- -------------------- I like to add lines of dashes like this to split up the code. I learned this from Code Bullet I believe :) -------------------- --------------------
 	
@@ -22,9 +22,10 @@ Additionally, here are a few notes about my code that I thought was important, s
 	
 	If anything seems like it wouldn't have been written in an IDE like that: that's because it wasn't! I write code in Notepad++ because I'm used to it, it has Scintilla (which is a godsend), and I hate the friction that comes with setting up projects in common IDE's (even if they come with smart features like autocomplete)
 	
+I also commented a lot more, but that was more for my sake
+	
 
 If anything I hope the history of commits that will now be visible should speak to the mod being human made.
-
 
 */
 
@@ -59,13 +60,13 @@ struct Rate {
 	float passrate() const { return total() > 0.0 ? a / total() : 0.0; }
 };
 
-// A slow and a fast counter with change detection.
+// Keeps a slow and fast rate for a specific segment (defined by "from" and "to")
 struct SegmentTracker {
 	Rate slow, fast;                 
-	// Amount of attempt memory is: 1/(1-lambda)
-	inline static float lambdaSlow  = 0.995;    // Memory of ~200 attempts
-	inline static float lambdaFast  = 0.95;     // Memory of ~20 attempts
-	inline static float floorN = 1.0;       	// How much rates get downsized when "reset"
+	// Amount of attempt "memory" is: 1/(1-lambda)
+	inline static float lambdaSlow  = 0.995;    // Memory of ~200 attempts per default
+	inline static float lambdaFast  = 0.95;     // Memory of ~20 attempts per default
+	inline static float memoryOnReset = 1.0;       	// How much rates get downsized when "reset"
 	
 	// Which run it is, start and end percents
 	float from = 0;
@@ -75,37 +76,37 @@ struct SegmentTracker {
 		slow.add(pass, lambdaSlow);
 		fast.add(pass, lambdaFast);
 		
-		// Limit memory to 1.5f times the "max". Relevant for when lambda is lowered so it takes less time to adjust.
-		float k = 1.f/(1.f-lambdaSlow);
-		if(slow.a > k*1.5f)
+		// Limit memory to the "max". Relevant for when lambda is lowered so it takes less time to adjust.
+		float k = 1.f/(1.f-lambdaSlow);	// Memory calculation
+		if(slow.a > k)
 		{
-			slow.a *= k*1.5f/slow.a;
-			slow.b *= k*1.5f/slow.b;			
+			slow.a *= k/slow.a;			// Downsize to k on too much memory
+			slow.b *= k/slow.b;			
 		}
 		k = 1.f/(1.f-lambdaFast);
-		if(fast.a > k*1.5f)
+		if(fast.a > k)
 		{
-			fast.a *= k*1.5f/fast.a;
-			fast.b *= k*1.5f/fast.b;
+			fast.a *= k/fast.a;
+			fast.b *= k/fast.b;
 		}
 	}
 	
 	// Cut down memory so new attempts weigh more again
 	void resetMemory()
 	{
-		if (slow.total() > floorN) {
-			// Becomes the equivalent of having done only floorN attempts, meaning new attemps get more impact
-			float k = floorN / slow.total();   
+		if (slow.total() > memoryOnReset) {
+			// Becomes the equivalent of having done only memoryOnReset attempts, meaning new attemps get more impact
+			float k = memoryOnReset / slow.total();   
 			slow.a *= k;
 			slow.b *= k;
-			k = floorN / fast.total();
+			k = memoryOnReset / fast.total();
 			fast.a *= k;
 			fast.b *= k;
 		}
 	}
 	
 
-	float passrate() const { return slow.passrate(); }		// Passrate to display
+	float passrate() const { return slow.passrate(); }	// Passrate to display
 	
 	// Trend indicator calculation
 	std::string trend() const 
