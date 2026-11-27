@@ -164,22 +164,22 @@ struct matjson::Serialize<SegmentTracker> {
 // PLAYLAYER -------------------- PLAYLAYER -------------------- PLAYLAYER -------------------- PLAYLAYER -------------------- PLAYLAYER -------------------- 
 #include <Geode/modify/PlayLayer.hpp>
 class $modify(PassratePlayLayer, PlayLayer) {
+	// I know of Fields() and ~Fields() but understood them to be optional, and the ~ was foreign to me. I believe my use of varibles is safe
 	struct Fields {
 		CCLabelBMFont* label = nullptr;			// Label that shows passrate while playing
 		std::vector<float> startPosX; 			// Collected during load
-		std::vector<float> startPosPercents;	// Sorted in ascending order, calculated using startPosX
+		std::vector<float> startPosPercents;	// Sorted in ascending order, calculated using startPosX in createObjectsFromSetupFinished
 		float startPercent = -1.f;
 		float target = 100.f;
 		bool attemptActive = false;				// Set to false to avoid "deaths" during run switching
 		bool reachedTarget = false;
 		bool usingCustomTarget = false;
 		
-		std::vector<SegmentTracker> segments;										// Segments that get saved
+		std::vector<SegmentTracker> segments;	// Segments that get saved, collected at createObjectsFromSetupFinished, loadSegments
 		// Give initial value so that currentSegment doesn't start out undefined (causes crash)
 		SegmentTracker customSegment = SegmentTracker{ .from = 0.f, .to = 100.f };	// Where to keep the segment data for a run that's not valid for saving
 		SegmentTracker* currentSegment = &customSegment;							// Current run tracking, valid for saving or not
 		
-		// Get number from settings to it gets saved, explained in info that more info is avaliable from within level
 		float lambdaSlow = geode::Mod::get()->getSettingValue<float>("lambda-slow");
 		float lambdaFast = geode::Mod::get()->getSettingValue<float>("lambda-fast");
 		
@@ -188,7 +188,6 @@ class $modify(PassratePlayLayer, PlayLayer) {
 		float gracePeriod = Mod::get()->getSettingValue<float>("grace-period");
 		
 		float customEndingPercent = Mod::get()->getSettingValue<float>("custom-ending-percent");
-		
 	};
 
 	// Get start position object positions when objects get loaded in
